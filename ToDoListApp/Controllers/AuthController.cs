@@ -64,8 +64,25 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login(LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        return Ok("Login successful");
+        var email = (request.Email ?? string.Empty).Trim().ToLower();
+        var password = request.Password ?? string.Empty;
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        {
+            return BadRequest("Email and password are required.");
+        }
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            return Unauthorized(new { error = "Invalid email or password." });
+        }
+        var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        if (result == PasswordVerificationResult.Failed)
+        {
+            return Unauthorized(new { error = "Invalid email or password." });
+        }
+        // TODO: Generate JWT token and return it to the client
+        return Ok(new { message = "Login successful." });
     }
 }
