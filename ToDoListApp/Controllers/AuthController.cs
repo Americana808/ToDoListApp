@@ -5,6 +5,11 @@ using ToDoListApp.Data;
 using ToDoListApp.Dtos;
 using ToDoListApp.Models;
 
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 namespace ToDoListApp.Controllers;
 
 [ApiController]
@@ -13,10 +18,12 @@ public class AuthController : ControllerBase
 {
     private readonly AppDBContext _db;
     private readonly PasswordHasher<User> _passwordHasher = new();
+    private readonly IConfiguration _config;
 
-    public AuthController(AppDBContext db)
+    public AuthController(AppDBContext db, IConfiguration config)
     {
         _db = db;
+        _config = config;
     }
 
     /* POST /auth/register
@@ -42,7 +49,7 @@ public class AuthController : ControllerBase
 
         if (password.Length < 8)
         {
-            return BadRequest("Password must be at least 6 characters long.");
+            return BadRequest("Password must be at least 8 characters long.");
         }
 
         var existingUser = await _db.Users.AnyAsync(u => u.Email == email);
@@ -82,7 +89,38 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new { error = "Invalid email or password." });
         }
-        // TODO: Generate JWT token and return it to the client
-        return Ok(new { message = "Login successful." });
+        var token = CreateJWT(user);
+        return Ok(new { token });
     }
+
+    private string CreateJWT(User user)
+    {
+        var jwtSection = _config.GetSection("JWT");
+
+        var key = jwtSection["Key"];
+        var issuer = jwtSection["Issuer"];
+        var audience = jwtSection["Audience"];
+        var expiresInMinutes = int.Parse(jwtSection["DurationInMinutes"]);
+
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+        var creds = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expiresInMinutes),
+            signingCredentials: creds
+            );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
 }
