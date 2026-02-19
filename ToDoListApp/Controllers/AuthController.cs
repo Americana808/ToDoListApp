@@ -83,7 +83,6 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = "Invalid email or password." });
         }
         // TODO: Generate JWT token and return it to the client
-        // reference to seperate class for JWT generation:
         return Ok(new { message = "Login successful." });
     }
 }
