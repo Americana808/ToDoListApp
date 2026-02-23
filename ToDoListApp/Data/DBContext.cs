@@ -7,9 +7,9 @@ namespace ToDoListApp.Data
     {
         public AppDBContext(DbContextOptions<AppDBContext> options) : base(options) {}
         public DbSet<User> Users => Set<User>();
+        public DbSet<ToDoTask> Tasks => Set<ToDoTask>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Ensure email unqueness
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
