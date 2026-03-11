@@ -7,7 +7,7 @@
         public Guid UserId { get; set; }
         public User? User { get; set; }
 
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public bool IsCompleted { get; set; } = false;
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
