@@ -90,7 +90,7 @@ namespace ToDoListApp.Controllers
             return Ok(tasks);
         }
 
-        [HttpGet("/specificTask/{id:guid}")]
+        [HttpGet("/{id:guid}/specificTask")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var userId = GetUserId();
@@ -113,7 +113,7 @@ namespace ToDoListApp.Controllers
             return Ok(task);
         }
 
-        [HttpPut("/update/{id:guid}")]
+        [HttpPut("/{id:guid}/update")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTaskRequest request)
         {
             var userId = GetUserId();
@@ -158,7 +158,7 @@ namespace ToDoListApp.Controllers
             });
         }
 
-        [HttpDelete("/delete/{id:guid}")]
+        [HttpDelete("/{id:guid}/delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var userId = GetUserId();
@@ -172,7 +172,7 @@ namespace ToDoListApp.Controllers
             return NoContent();
         }
 
-        [HttpPost("/markComplete/{id:guid}")]
+        [HttpPost("/{id:guid}/markComplete")]
         public async Task<IActionResult> MarkAsCompleted(Guid id)
         {
             var userId = GetUserId();
